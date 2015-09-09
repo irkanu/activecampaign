@@ -1,0 +1,8 @@
+{
+  "name": "dylan/active-campaign",
+  "description": "Testing using the ActiveCampaign PHP API wrapper with Composer.",
+  "require": {
+    "activecampaign/api-php": "1.0.0"
+  },
+  "minimum-stability": "dev"
+}
