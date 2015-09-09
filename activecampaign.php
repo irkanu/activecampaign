@@ -1,10 +1,10 @@
 <?php
 /**
- * Plugin Name: Active Campaign
+ * Plugin Name:	Active Campaign
  * Description: A brief description of the Plugin.
- * Version: 1.0
- * Author: Dylan Ryan
- * License: A "Slug" license name e.g. GPL2
+ * Version:		1.0
+ * Author:		Dylan Ryan
+ * License:		A "Slug" license name e.g. GPL2
  *
  * @package         Active_Campaign
  * @author          Dylan Ryan
@@ -83,8 +83,20 @@ if ( !class_exists( 'Active_Campaign' ) ) {
 		 * @return      void
 		 */
 		private function includes() {
+			global $ac_options;
+
+			require_once ACTIVE_CAMPAIGN_DIR . 'includes/admin/settings/register-settings.php';
+			$ac_options = ac_get_settings();
+
 			// Active Campaign PHP Library
 			require_once ACTIVE_CAMPAIGN_DIR . 'vendor/activecampaign/api-php/includes/ActiveCampaign.class.php';
+
+			require_once ACTIVE_CAMPAIGN_DIR . 'includes/scripts.php';
+
+			if ( is_admin() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+				require_once ACTIVE_CAMPAIGN_DIR . 'includes/admin/admin-pages.php';
+				require_once ACTIVE_CAMPAIGN_DIR . 'includes/admin/settings/display-settings.php';
+			}
 		}
 
 
@@ -97,8 +109,7 @@ if ( !class_exists( 'Active_Campaign' ) ) {
 		 */
 		private function hooks() {
 			global $ac_options;
-			//$this->connector = new ActiveCampaign( $ac_options['api_url'], $ac_options['api_key'] );
-			$this->connector = new ActiveCampaign( 'https://dylanryan.api-us1.com', 'b9343b47a317b7adf26d9b6f65689da45c5fb1dce7f30a440931283301aac94ca54edea2' );
+			$this->connector = new ActiveCampaign( $ac_options['api_url'], $ac_options['api_key'] );
 			add_action( 'admin_menu', array( $this, 'add_options_page' ) );
 		}
 
@@ -109,13 +120,13 @@ if ( !class_exists( 'Active_Campaign' ) ) {
 		}
 
 		public function get_account_view() {
-			$account_view = $this->connector->api("user/me");
+			$account_view = $this->connector->api("contact/list_");
 			$this->print_r_debug($account_view);
 			return $account_view;
 		}
 
 		public function add_options_page() {
-			add_menu_page( 'ActiveCampaign', 'ActiveCampaign', 'manage_options', 'options_page_slug', array( $this, 'settings_page' ) );
+			add_menu_page( 'Debug', 'Debug', 'manage_options', 'debug', array( $this, 'settings_page' ) );
 		}
 
 		public function settings_page() {
