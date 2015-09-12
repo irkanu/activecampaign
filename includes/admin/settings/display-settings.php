@@ -65,6 +65,7 @@ function ac_options_page() {
                 echo '<a href="' . esc_url( $tab_url ) . '" title="' . esc_attr( $tab_name ) . '" class="nav-tab' . $active . '">';
                 echo esc_html( $tab_name );
                 echo '</a>';
+                do_action( 'ac_admin_page' );
             }
             ?>
         </h2>

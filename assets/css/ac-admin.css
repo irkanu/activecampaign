@@ -20,7 +20,7 @@ a.ac-delete:hover { color: #f00; }
 .toplevel_page_ac-settings .nav-tab { margin-right: 8px; }
 .toplevel_page_ac-settings #wpcontent { background-color: #FFFFFF; }
 .toplevel_page_ac-settings #tab_container { background-color: #F1F1F1; border-left: 1px solid #ccc; border-bottom: 1px solid #ccc;	border-right: 1px solid #ccc; }
-.toplevel_page_ac-settings .form-table label { color: #666; font-size: 14px; font-style: italic; margin: 4px 0 0; }
+.toplevel_page_ac-settings .form-table label { color: #666; font-size: 14px; font-style: italic; margin: 4px 0 0; display: block; }
 .toplevel_page_ac-settings .form-table select + label,
 .toplevel_page_ac-settings .form-table input.regular-text ~ label { display:block; }
 .toplevel_page_ac-settings .form-table input.small-text ~ label,

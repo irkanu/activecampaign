@@ -96,6 +96,8 @@ if ( !class_exists( 'Active_Campaign' ) ) {
 			if ( is_admin() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
 				require_once ACTIVE_CAMPAIGN_DIR . 'includes/admin/admin-pages.php';
 				require_once ACTIVE_CAMPAIGN_DIR . 'includes/admin/settings/display-settings.php';
+				require_once ACTIVE_CAMPAIGN_DIR . 'includes/api/contacts/actions.php';
+				require_once ACTIVE_CAMPAIGN_DIR . 'includes/api/contacts/functions.php';
 			}
 		}
 
@@ -114,8 +116,37 @@ if ( !class_exists( 'Active_Campaign' ) ) {
 
 
 		public function get_user_me() {
-			$user_me = $this->connector->api("user/me");
-			return $user_me;
+			global $ac_options;
+
+			$user_me_transient = md5( __FUNCTION__ . '_' . ACTIVE_CAMPAIGN_VER . '_' . $ac_options['api_key'] . '_' . '0004' );
+
+			// set user_me equal to transient
+			$user_me = get_transient( $user_me_transient );
+
+			// check if the transient has stuffies
+			if ( ! empty ( $user_me ) ) {
+				// return all the stuffies
+				return $user_me;
+			} else {
+				// if we don't, let's populate the transient
+				$query_args = array(
+					'api_action'	=>	'user_me',
+					'api_key'		=>	$ac_options['api_key'],
+					'api_output'	=>	'serialize'
+				);
+				// escape our add_query_args
+				// https://make.wordpress.org/plugins/2015/04/20/fixing-add_query_arg-and-remove_query_arg-usage/
+				$user_me_response = wp_safe_remote_get( esc_url_raw( add_query_arg( $query_args, $ac_options['api_url'] . '/admin/api.php?' ) ) );
+
+				// grab the body
+				$user_me = unserialize( $user_me_response['body'] );
+
+				// Save the API response so we don't have to call again until tomorrow.
+				set_transient( $user_me_transient, $user_me, DAY_IN_SECONDS );
+
+				// return the api body
+				return $user_me;
+			}
 		}
 
 		public function get_account_view() {
@@ -129,14 +160,59 @@ if ( !class_exists( 'Active_Campaign' ) ) {
 			return $account_view;
 		}
 
+		public function do_contact_sync() {
+			global $ac_options;
+			$this->connector = new ActiveCampaign( $ac_options['api_url'], $ac_options['api_key'] );
+			// do the syncage bruh.
+			// there is a lot we can do here
+			// http://www.activecampaign.com/api/example.php?call=contact_sync
+/*			$query_args = array(
+				'api_action'	=>	'contact_add',
+				'api_key'		=>	$ac_options['api_key'],
+				'api_output'	=>	'serialize',
+				'email'         =>  'test@gmail.com',
+				'p[2]'          =>  2
+			);*/
+
+			// escape our add_query_args
+			// https://make.wordpress.org/plugins/2015/04/20/fixing-add_query_arg-and-remove_query_arg-usage/
+			//$contact_sync_response = wp_safe_remote_post( add_query_arg( $query_args, $ac_options['api_url'] . '/admin/api.php?' ) );
+
+			// grab the body
+			//$contact_sync = unserialize( $contact_sync_response['body'] );
+
+			//?email=test@test.com&p[1]=1&last_name=Boobs
+
+/*			$users = get_users();
+
+			foreach ( $users as $user ) {
+				$post = array(
+					'first_name'	=>	$user->user_firstname,
+					'last_name'		=>	$user->user_lastname,
+					'email'         =>  $user->user_email,
+					'p[2]'          =>  2
+				);
+				$contact_sync = $this->connector->api("contact/sync", $post);
+			}*/
+
+			$contact_sync = '';
+
+			return $contact_sync;
+		}
+
 		public function add_options_page() {
 			add_menu_page( 'Debug', 'Debug', 'manage_options', 'debug', array( $this, 'settings_page' ) );
 		}
 
 		public function settings_page() {
 			global $ac_options;
-			$this->connector = new ActiveCampaign( $ac_options['api_url'], $ac_options['api_key'] );
-			$this->get_account_view();
+			//$this->connector = new ActiveCampaign( $ac_options['api_url'], $ac_options['api_key'] );
+			//$this->get_account_view();
+			//$response = wp_safe_remote_get( $ac_options['api_url'] . '/admin/api.php?api_action=user_me&api_key=' . $ac_options['api_key'] . '&api_output=serialize' );
+/*			if( is_array($response) ) {
+				$body = unserialize($response['body']); // use the content
+			}*/
+			$this->print_r_debug($this->do_contact_sync());
 		}
 
 		public function print_r_debug( $val ) {

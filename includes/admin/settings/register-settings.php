@@ -218,20 +218,6 @@ function ac_get_registered_settings() {
                     'desc' => '',
                     'type' => 'header'
                 ),
-                'list_restriction_enabled' => array(
-                    'id'   => 'list_restriction_enabled',
-                    'name' => __( 'Enable Content Restriction', 'ac' ),
-                    'desc' => __( 'Check this box to turn on content restriction via a shortcode. This will check the current user against your ActiveCampaign list', 'ac' ),
-                    'type' => 'checkbox'
-                ),
-                'list_restriction_tag' => array(
-                    'id'   => 'list_restriction_tag',
-                    'name' => __( 'Tags Allowed', 'ac' ),
-                    'desc' => __( 'This will check the current user against ActiveCampaign to see if they are tagged.', 'ac' ),
-                    'type' => 'text',
-                    'size' => 'regular',
-                    'std'  => ''
-                ),
                 'list_restriction_error_message' => array(
                     'id'   => 'list_restriction_error_message',
                     'name' => __( 'Invalid Access Message', 'ac' ),
@@ -369,8 +355,20 @@ function ac_get_registered_settings() {
             )
         ),
         /** Payment Gateways Settings */
-        'gateways' => apply_filters('ac_settings_gateways',
+        'contacts' => apply_filters('ac_settings_contacts',
             array(
+                'contact_settings' => array(
+                    'id' => 'contact_settings',
+                    'name' => '<strong>' . __( 'Contact Settings', 'ac' ) . '</strong>',
+                    'desc' => '',
+                    'type' => 'header'
+                ),
+                'contact_sync' => array(
+                    'id'   => 'contact_sync',
+                    'name' => __( 'Contact Sync', 'ac' ),
+                    'desc' => '',
+                    'type' => 'hook'
+                ),
                 /*'test_mode' => array(
                     'id' => 'test_mode',
                     'name' => __( 'Test Mode', 'ac' ),
@@ -434,7 +432,7 @@ function ac_get_registered_settings() {
             )
         ),
         /** Emails Settings */
-        'emails' => apply_filters('ac_settings_emails',
+        'campaigns' => apply_filters('ac_settings_campaigns',
             array(
                 /*'email_template' => array(
                     'id'      => 'email_template',
@@ -526,7 +524,7 @@ function ac_get_registered_settings() {
             )
         ),
         /** Styles Settings */
-        'styles' => apply_filters('ac_settings_styles',
+        'deals' => apply_filters('ac_settings_deals',
             array(
                 /*'disable_styles' => array(
                     'id'   => 'disable_styles',
@@ -557,7 +555,7 @@ function ac_get_registered_settings() {
             )
         ),
         /** Taxes Settings */
-        'taxes' => apply_filters('ac_settings_taxes',
+        'lists' => apply_filters('ac_settings_lists',
             array(
                 /*'enable_taxes' => array(
                     'id'   => 'enable_taxes',
