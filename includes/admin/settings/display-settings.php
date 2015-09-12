@@ -21,12 +21,40 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  * @return void
  */
 function ac_options_page() {
+    global $ac_options;
     $active_tab = isset( $_GET['tab'] ) && array_key_exists( $_GET['tab'], ac_get_settings_tabs() ) ? $_GET['tab'] : 'general';
+
+    // Initiate a connection to the API.
+    $connector = new ActiveCampaign( $ac_options['api_url'], $ac_options['api_key'] );
+
+    // Pull the image from branding end point if the user enables branding.
+    if ( isset( $ac_options['branding_enabled'] ) && $ac_options['branding_enabled'] == true ) {
+        $brand_image = $connector->api("design/view")->site_logo_small;
+    } else {
+        $brand_image = ACTIVE_CAMPAIGN_URL . 'assets/images/ac_color_symbol_trans.png';
+    }
+
+    // Test the credentials on page load and set green if good, red if bad.
+    // TODO: Let the user choose when to test creds.
+    if ( !(int)$connector->credentials_test() ) {
+        // We failed, set input bg to red.
+        $cred_check = 'rgba(255, 0, 0, 0.15)';
+    } else {
+        // We succeeded, set input bg to green.
+        $cred_check = 'rgba(0, 255, 20, 0.15)';
+    }
+
     ob_start();
     ?>
+    <style>
+        .toplevel_page_ac-settings input[name="ac_settings[api_url]"],
+        .toplevel_page_ac-settings input[name="ac_settings[api_key]"]{
+            background-color: <?php echo esc_attr($cred_check); ?>;
+        }
+    </style>
     <div class="wrap">
         <h2 class="nav-tab-wrapper">
-            <img src="<?php echo ACTIVE_CAMPAIGN_URL . 'assets/images/ac_color_symbol_trans.png' ?>" width="64" height="64">
+            <img class="branding_icon" src="<?php echo esc_attr($brand_image); ?>" width="64" height="64">
             <?php
             foreach( ac_get_settings_tabs() as $tab_id => $tab_name ) {
                 $tab_url = add_query_arg( array(

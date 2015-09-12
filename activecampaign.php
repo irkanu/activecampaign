@@ -108,9 +108,8 @@ if ( !class_exists( 'Active_Campaign' ) ) {
 		 * @return      void
 		 */
 		private function hooks() {
-			global $ac_options;
-			$this->connector = new ActiveCampaign( $ac_options['api_url'], $ac_options['api_key'] );
 			add_action( 'admin_menu', array( $this, 'add_options_page' ) );
+			add_shortcode( 'ac_restrict', array( $this, 'add_shortcode' ) );
 		}
 
 
@@ -120,8 +119,13 @@ if ( !class_exists( 'Active_Campaign' ) ) {
 		}
 
 		public function get_account_view() {
-			$account_view = $this->connector->api("contact/list_");
-			$this->print_r_debug($account_view);
+			$current_user = wp_get_current_user();
+			$account_view = $this->connector->api("list/view?id=1");
+			// list/list ?ids=all allows you to pull all lists.
+			// &filters[KEY]=VALUE let's you search a key for a value.
+			//$all_lists = $this->connector->api("list/list?ids=all&full=1");
+			$user_email = $this->connector->api("contact/view?email=" . $current_user->user_email);
+			$this->print_r_debug($user_email->tags);
 			return $account_view;
 		}
 
@@ -130,6 +134,8 @@ if ( !class_exists( 'Active_Campaign' ) ) {
 		}
 
 		public function settings_page() {
+			global $ac_options;
+			$this->connector = new ActiveCampaign( $ac_options['api_url'], $ac_options['api_key'] );
 			$this->get_account_view();
 		}
 
@@ -142,8 +148,27 @@ if ( !class_exists( 'Active_Campaign' ) ) {
 			echo "</pre>";
 		}
 
+		public function add_shortcode( $atts, $content = null ) {
+				extract( shortcode_atts( array(
+					'tag' => 'none',
+				), $atts ) );
 
+			global $ac_options;
 
+			$current_user = wp_get_current_user();
+
+			$this->connector = new ActiveCampaign( $ac_options['api_url'], $ac_options['api_key'] );
+			$user_email = $this->connector->api("contact/view?email=" . $current_user->user_email);
+
+			$restrict_tag = $user_email->tags;
+
+			//TODO: needle haystack search
+			if ($tag = $restrict_tag && is_user_logged_in()) {
+				return do_shortcode($content);
+			} else {
+				return '<span style="color: red;">'. $ac_options['list_restriction_error_message'] . '</span>';
+			}
+		}
 	}
 } // End if class_exists check
 
@@ -159,4 +184,3 @@ function AC_load_instance() {
 	return Active_Campaign::instance();
 }
 add_action( 'plugins_loaded', 'AC_load_instance' );
-//hey qt

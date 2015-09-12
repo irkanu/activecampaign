@@ -26,10 +26,7 @@ function ac_load_admin_scripts( $hook ) {
 
     $css_dir = ACTIVE_CAMPAIGN_URL . 'assets/css/';
 
-    // Use minified libraries if SCRIPT_DEBUG is turned off
-    $suffix  = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
-
-    wp_register_style( 'ac-admin', $css_dir . 'ac-admin' . $suffix . '.css', ACTIVE_CAMPAIGN_VER );
+    wp_register_style( 'ac-admin', $css_dir . 'ac-admin.css', ACTIVE_CAMPAIGN_VER );
     wp_enqueue_style( 'ac-admin' );
 }
 add_action( 'admin_enqueue_scripts', 'ac_load_admin_scripts', 100 );
