@@ -1,10 +1,10 @@
 <?php
 /**
- * Plugin Name:	Active Campaign
- * Description: A brief description of the Plugin.
- * Version:		1.0
+ * Plugin Name:	ActiveCampaign for WordPress
+ * Description: ActiveCampaign for WordPress, the best way to manage ActiveCampaign through WordPress.
+ * Version:		1.0.0
  * Author:		Dylan Ryan
- * License:		A "Slug" license name e.g. GPL2
+ * License:		GPL2
  *
  * @package         Active_Campaign
  * @author          Dylan Ryan
@@ -96,7 +96,9 @@ if ( !class_exists( 'Active_Campaign' ) ) {
 			if ( is_admin() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
 				require_once ACTIVE_CAMPAIGN_DIR . 'includes/admin/admin-pages.php';
 				require_once ACTIVE_CAMPAIGN_DIR . 'includes/admin/settings/display-settings.php';
-				require_once ACTIVE_CAMPAIGN_DIR . 'includes/api/contacts/actions.php';
+				require_once ACTIVE_CAMPAIGN_DIR . 'includes/api/general/display.php';
+				require_once ACTIVE_CAMPAIGN_DIR . 'includes/api/general/functions.php';
+				require_once ACTIVE_CAMPAIGN_DIR . 'includes/api/contacts/display.php';
 				require_once ACTIVE_CAMPAIGN_DIR . 'includes/api/contacts/functions.php';
 			}
 		}
@@ -208,11 +210,11 @@ if ( !class_exists( 'Active_Campaign' ) ) {
 			global $ac_options;
 			//$this->connector = new ActiveCampaign( $ac_options['api_url'], $ac_options['api_key'] );
 			//$this->get_account_view();
-			//$response = wp_safe_remote_get( $ac_options['api_url'] . '/admin/api.php?api_action=user_me&api_key=' . $ac_options['api_key'] . '&api_output=serialize' );
-/*			if( is_array($response) ) {
+			$response = wp_safe_remote_get( $ac_options['api_url'] . '/admin/api.php?api_action=contact_list&api_key=' . $ac_options['api_key'] . '&api_output=serialize&ids=all' );
+			if( is_array($response) ) {
 				$body = unserialize($response['body']); // use the content
-			}*/
-			$this->print_r_debug($this->do_contact_sync());
+			}
+			$this->print_r_debug($body);
 		}
 
 		public function print_r_debug( $val ) {

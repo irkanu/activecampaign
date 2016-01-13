@@ -10,8 +10,18 @@
 .ac-hidden { display: none; }
 .ac-clearfix:after { display: block; visibility: hidden; content: "."; text-indent: -9999px; height: 0; }
 .ac-wrap a { text-decoration: none; }
+.ac-valid { background-color: #B7F7BC; }
+.ac-invalid { background-color: #F7B7B7; }
 a.ac-delete { color: #a00; }
 a.ac-delete:hover { color: #f00; }
+.ac-disabled {
+	pointer-events: none;
+	background: rgba(255,255,255,.5)!important;
+	border-color: rgba(222,222,222,.75);
+	-webkit-box-shadow: inset 0 1px 2px rgba(0,0,0,.04);
+	box-shadow: inset 0 1px 2px rgba(0,0,0,.04);
+	color: rgba(51,51,51,.5);
+}
 
 /* General Settings Styles
 -------------------------------------------------------------- */
@@ -21,11 +31,22 @@ a.ac-delete:hover { color: #f00; }
 .toplevel_page_ac-settings #wpcontent { background-color: #FFFFFF; }
 .toplevel_page_ac-settings #tab_container { background-color: #F1F1F1; border-left: 1px solid #ccc; border-bottom: 1px solid #ccc;	border-right: 1px solid #ccc; }
 .toplevel_page_ac-settings .form-table label { color: #666; font-size: 14px; font-style: italic; margin: 4px 0 0; display: block; }
+.toplevel_page_ac-settings .form-table input.regular-text { padding: 10px 15px; }
 .toplevel_page_ac-settings .form-table select + label,
 .toplevel_page_ac-settings .form-table input.regular-text ~ label { display:block; }
 .toplevel_page_ac-settings .form-table input.small-text ~ label,
 .toplevel_page_ac-settings .form-table input[type="checkbox"] + label { display: inline; }
 .toplevel_page_ac-settings .form-table tr > th > strong { font-size: 18px; font-style: italic; }
+.toplevel_page_ac-settings input.ac-valid#ac_settings_api_url,
+.toplevel_page_ac-settings input.ac-valid#ac_settings_api_key {
+	background: #B7F7BC url('../images/check_icon.png') no-repeat 98% 7px;
+	padding-right: 32px;
+}
+.toplevel_page_ac-settings input.ac-invalid#ac_settings_api_url,
+.toplevel_page_ac-settings input.ac-invalid#ac_settings_api_key {
+	background: #F7B7B7 url('../images/cross_icon.png') no-repeat 98% 7px;
+	padding-right: 32px;
+}
 
 /* =Add Ons Styles
 -------------------------------------------------------------- */
@@ -264,13 +285,13 @@ td.ac_order_price { text-align: right; }
 
 /* Settings page styles
 -------------------------------------------------------------- */
-#ac_tax_rates { margin: 1em 0 0; }
-#ac_tax_rates .ac_tax_country *,
-#ac_tax_rates .ac_tax_state * { max-width: 100%; }
-#ac_tax_rates .ac_tax_country,
-#ac_tax_rates .ac_tax_state { width: 180px; }
-#ac_tax_rates .ac_tax_rate { width: 80px; }
-#ac_tax_rates th { padding: 15px 10px; }
+#ac_contact_list { margin: 1em 0 0; }
+#ac_contact_list .ac_tax_country *,
+#ac_contact_list .ac_tax_state * { max-width: 100%; }
+#ac_contact_list .ac_contact_first_name,
+#ac_contact_list .ac_contact_last_name,
+#ac_contact_list .ac_contact_email { width: 180px; }
+#ac_contact_list th { padding: 15px; }
 
 /* Taxonomy styles
 -------------------------------------------------------------- */
@@ -396,4 +417,3 @@ td.ac_order_price { text-align: right; }
 .customer-note-wrapper span { display: block; }
 .note-content-wrap { padding-top: 7px; }
 .delete-customer { text-align: center; }
-

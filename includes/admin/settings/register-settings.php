@@ -18,6 +18,8 @@ if ( !defined( 'ABSPATH' ) ) exit;
  * Looks to see if the specified setting exists, returns default if not
  *
  * @since 1.8.4
+ * @param string $key
+ * @param bool $default
  * @return mixed
  */
 function ac_get_option( $key = '', $default = false ) {
@@ -200,6 +202,12 @@ function ac_get_registered_settings() {
                     'size' => 'regular',
                     'std'  => ''
                 ),
+                'api_lock' => array(
+                    'id'   => 'api_lock',
+                    'name' => __( 'Lock API Settings?', 'ac' ),
+                    'desc' => __( 'Check this box to lock in the API URL & API Key settings.', 'ac' ),
+                    'type' => 'checkbox'
+                ),
                 'branding_settings' => array(
                     'id' => 'branding_settings',
                     'name' => '<strong>' . __( 'Branding Settings', 'ac' ) . '</strong>',
@@ -368,6 +376,12 @@ function ac_get_registered_settings() {
                     'name' => __( 'Contact Sync', 'ac' ),
                     'desc' => '',
                     'type' => 'hook'
+                ),
+                'contact_list' => array(
+                    'id' => 'contact_list',
+                    'name' => '<strong>' . __( 'Contact List', 'ac' ) . '</strong>',
+                    'desc' => __( 'View all of your contacts.', 'ac' ),
+                    'type' => 'contact_list'
                 ),
                 /*'test_mode' => array(
                     'id' => 'test_mode',
@@ -930,6 +944,46 @@ function ac_get_pages( $force = false ) {
     }
     return $pages_options;
 }
+
+/**
+ * TODO
+ * @param $args
+ */
+function ac_contact_list_callback( $args ) {
+    global $ac_options;
+
+    $response = wp_safe_remote_get( $ac_options['api_url'] . '/admin/api.php?api_action=contact_list&api_key=' . $ac_options['api_key'] . '&api_output=serialize&ids=all' );
+    if( is_array($response) ) {
+        $body = unserialize($response['body']); // use the content
+    }
+
+    ob_start(); ?>
+    <?php echo '<label>' . $args['desc'] . '</label>'; ?>
+    <table id="ac_contact_list" class="wp-list-table widefat fixed posts">
+        <thead>
+        <tr>
+            <th scope="col" class="ac_contact_first_name"><?php _e( 'First Name', 'ac' ); ?></th>
+            <th scope="col" class="ac_contact_last_name"><?php _e( 'Last Name', 'ac' ); ?></th>
+            <th scope="col" class="ac_contact_email"><?php _e( 'Email Address', 'ac' ); ?></th>
+            <th scope="col"><?php _e( 'Remove', 'ac' ); ?></th>
+        </tr>
+        </thead>
+
+        <?php foreach( $body as $person ) :
+            ?>
+        <tr>
+            <td class="ac_contact_first_name"><?php echo $person['first_name']; ?></td>
+            <td class="ac_contact_last_name"><?php echo $person['last_name']; ?></td>
+            <td class="ac_contact_email"><?php echo $person['email']; ?></td>
+            <td><?php _e( 'Remove', 'ac' ); ?></td>
+        </tr>
+        <?php endforeach;
+        ?>
+
+    </table>
+<?php
+}
+
 /**
  * Header Callback
  *
@@ -960,7 +1014,7 @@ function ac_checkbox_callback( $args ) {
         $name = 'name="ac_settings[' . $args['id'] . ']"';
     }
     $checked = isset( $ac_options[ $args['id'] ] ) ? checked( 1, $ac_options[ $args['id'] ], false ) : '';
-    $html = '<input type="checkbox" id="ac_settings[' . $args['id'] . ']"' . $name . ' value="1" ' . $checked . '/>';
+    $html = '<input type="checkbox" id="ac_settings_' . $args['id'] . '"' . $name . ' value="1" ' . $checked . '/>';
     $html .= '<label for="ac_settings[' . $args['id'] . ']"> '  . $args['desc'] . '</label>';
     echo $html;
 }
@@ -979,7 +1033,7 @@ function ac_multicheck_callback( $args ) {
     if ( ! empty( $args['options'] ) ) {
         foreach( $args['options'] as $key => $option ):
             if( isset( $ac_options[$args['id']][$key] ) ) { $enabled = $option; } else { $enabled = NULL; }
-            echo '<input name="ac_settings[' . $args['id'] . '][' . $key . ']" id="ac_settings[' . $args['id'] . '][' . $key . ']" type="checkbox" value="' . $option . '" ' . checked($option, $enabled, false) . '/>&nbsp;';
+            echo '<input name="ac_settings[' . $args['id'] . '][' . $key . ']" id="ac_settings_' . $args['id'] . '_' . $key . '" type="checkbox" value="' . $option . '" ' . checked($option, $enabled, false) . '/>&nbsp;';
             echo '<label for="ac_settings[' . $args['id'] . '][' . $key . ']">' . $option . '</label><br/>';
         endforeach;
         echo '<p class="description">' . $args['desc'] . '</p>';
@@ -1003,7 +1057,7 @@ function ac_radio_callback( $args ) {
             $checked = true;
         elseif( isset( $args['std'] ) && $args['std'] == $key && ! isset( $ac_options[ $args['id'] ] ) )
             $checked = true;
-        echo '<input name="ac_settings[' . $args['id'] . ']"" id="ac_settings[' . $args['id'] . '][' . $key . ']" type="radio" value="' . $key . '" ' . checked(true, $checked, false) . '/>&nbsp;';
+        echo '<input name="ac_settings[' . $args['id'] . ']"" id="ac_settings_' . $args['id'] . '_' . $key . '" type="radio" value="' . $key . '" ' . checked(true, $checked, false) . '/>&nbsp;';
         echo '<label for="ac_settings[' . $args['id'] . '][' . $key . ']">' . $option . '</label><br/>';
     endforeach;
     echo '<p class="description">' . $args['desc'] . '</p>';
@@ -1025,7 +1079,7 @@ function ac_gateways_callback( $args ) {
             $enabled = '1';
         else
             $enabled = null;
-        echo '<input name="ac_settings[' . $args['id'] . '][' . $key . ']"" id="ac_settings[' . $args['id'] . '][' . $key . ']" type="checkbox" value="1" ' . checked('1', $enabled, false) . '/>&nbsp;';
+        echo '<input name="ac_settings[' . $args['id'] . '][' . $key . ']"" id="ac_settings_' . $args['id'] . '_' . $key . '" type="checkbox" value="1" ' . checked('1', $enabled, false) . '/>&nbsp;';
         echo '<label for="ac_settings[' . $args['id'] . '][' . $key . ']">' . $option['admin_label'] . '</label><br/>';
     endforeach;
 }
@@ -1075,7 +1129,7 @@ function ac_text_callback( $args ) {
     }
     $readonly = $args['readonly'] === true ? ' readonly="readonly"' : '';
     $size     = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
-    $html     = '<input type="text" class="' . $size . '-text" id="ac_settings[' . $args['id'] . ']"' . $name . ' value="' . esc_attr( stripslashes( $value ) ) . '"' . $readonly . '/>';
+    $html     = '<input type="text" class="' . $size . '-text" id="ac_settings_' . $args['id'] . '"' . $name . ' value="' . esc_attr( stripslashes( $value ) ) . '"' . $readonly . '/>';
     $html    .= '<label for="ac_settings[' . $args['id'] . ']"> '  . $args['desc'] . '</label>';
     echo $html;
 }
@@ -1107,7 +1161,7 @@ function ac_number_callback( $args ) {
     $min  = isset( $args['min'] ) ? $args['min'] : 0;
     $step = isset( $args['step'] ) ? $args['step'] : 1;
     $size = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
-    $html = '<input type="number" step="' . esc_attr( $step ) . '" max="' . esc_attr( $max ) . '" min="' . esc_attr( $min ) . '" class="' . $size . '-text" id="ac_settings[' . $args['id'] . ']" ' . $name . ' value="' . esc_attr( stripslashes( $value ) ) . '"/>';
+    $html = '<input type="number" step="' . esc_attr( $step ) . '" max="' . esc_attr( $max ) . '" min="' . esc_attr( $min ) . '" class="' . $size . '-text" id="ac_settings_' . $args['id'] . '" ' . $name . ' value="' . esc_attr( stripslashes( $value ) ) . '"/>';
     $html .= '<label for="ac_settings[' . $args['id'] . ']"> '  . $args['desc'] . '</label>';
     echo $html;
 }
@@ -1128,7 +1182,7 @@ function ac_textarea_callback( $args ) {
     } else {
         $value = isset( $args['std'] ) ? $args['std'] : '';
     }
-    $html = '<textarea class="large-text" cols="50" rows="5" id="ac_settings[' . $args['id'] . ']" name="ac_settings[' . $args['id'] . ']">' . esc_textarea( stripslashes( $value ) ) . '</textarea>';
+    $html = '<textarea class="large-text" cols="50" rows="5" id="ac_settings_' . $args['id'] . '" name="ac_settings[' . $args['id'] . ']">' . esc_textarea( stripslashes( $value ) ) . '</textarea>';
     $html .= '<label for="ac_settings[' . $args['id'] . ']"> '  . $args['desc'] . '</label>';
     echo $html;
 }
@@ -1150,7 +1204,7 @@ function ac_password_callback( $args ) {
         $value = isset( $args['std'] ) ? $args['std'] : '';
     }
     $size = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
-    $html = '<input type="password" class="' . $size . '-text" id="ac_settings[' . $args['id'] . ']" name="ac_settings[' . $args['id'] . ']" value="' . esc_attr( $value ) . '"/>';
+    $html = '<input type="password" class="' . $size . '-text" id="ac_settings_' . $args['id'] . '" name="ac_settings[' . $args['id'] . ']" value="' . esc_attr( $value ) . '"/>';
     $html .= '<label for="ac_settings[' . $args['id'] . ']"> '  . $args['desc'] . '</label>';
     echo $html;
 }
@@ -1193,7 +1247,7 @@ function ac_select_callback($args) {
     } else {
         $chosen = '';
     }
-    $html = '<select id="ac_settings[' . $args['id'] . ']" name="ac_settings[' . $args['id'] . ']" ' . $chosen . 'data-placeholder="' . $placeholder . '" />';
+    $html = '<select id="ac_settings_' . $args['id'] . '" name="ac_settings[' . $args['id'] . ']" ' . $chosen . 'data-placeholder="' . $placeholder . '" />';
     foreach ( $args['options'] as $option => $name ) {
         $selected = selected( $option, $value, false );
         $html .= '<option value="' . $option . '" ' . $selected . '>' . $name . '</option>';

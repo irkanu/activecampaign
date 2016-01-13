@@ -10,36 +10,37 @@
  */
 
 // Exit if accessed directly
-if ( ! defined( 'ABSPATH' ) ) exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /**
  * Trigger the contact sync
  *
  * @since 1.0.0
- * @param array $data Parameters sent from Settings page
- * @return void
  */
-function ac_do_contact_sync( $data ) {
-    global $ac_options;
-/*
-    if ( ! wp_verify_nonce( $data['_wpnonce'], 'ac-contact-sync' ) )
-        return;*/
+function ac_do_contact_sync() {
+	global $ac_options;
 
-    if ( isset ( $_GET['ac_action'] ) ) {
-        $this->connector = new ActiveCampaign( $ac_options['api_url'], $ac_options['api_key'] );
+	if ( ! isset ( $_GET['doing_contact_sync'] ) ) {
+		return false;
+	}
 
-        // do the syncage bruh.
-        $users = get_users();
+	$this->connector = new ActiveCampaign( $ac_options['api_url'], $ac_options['api_key'] );
 
-        foreach ( $users as $user ) {
-            $post = array(
-                'first_name'	=>	$user->user_firstname,
-                'last_name'		=>	$user->user_lastname,
-                'email'         =>  $user->user_email,
-                'p[2]'          =>  2
-            );
-            $this->connector->api("contact/sync", $post);
-        }
-    }
+	// do the syncage bruh.
+	$users = get_users();
+
+	foreach ( $users as $user ) {
+		$post = array(
+			'first_name' => $user->user_firstname,
+			'last_name'  => $user->user_lastname,
+			'email'      => $user->user_email,
+			'p[4]'       => 4
+		);
+		$this->connector->api( "contact/sync", $post );
+	}
+
 }
-add_action( 'ac_do_contact_sync', 'ac_do_contact_sync' );
+
+add_action( 'ac_contact_sync', 'ac_do_contact_sync' );

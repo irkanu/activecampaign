@@ -34,24 +34,23 @@ function ac_options_page() {
         $brand_image = ACTIVE_CAMPAIGN_URL . 'assets/images/ac_color_symbol_trans.png';
     }
 
-    // Test the credentials on page load and set green if good, red if bad.
-    // TODO: Let the user choose when to test creds.
-    if ( !(int)$connector->credentials_test() ) {
-        // We failed, set input bg to red.
-        $cred_check = 'rgba(255, 0, 0, 0.15)';
+    // Hold the api credential test response
+    $test_response = (int)$connector->credentials_test();
+
+    // Hold the transient hash
+    $test_response_transient = md5( __FUNCTION__ . '_' . $ac_options['api_key'] . $ac_options['api_url'] );
+
+    // Test the credentials
+    if ( $test_response ) {
+        // We succeeded, set a transient to store valid.
+        set_transient( $test_response_transient, 'valid', WEEK_IN_SECONDS );
     } else {
-        // We succeeded, set input bg to green.
-        $cred_check = 'rgba(0, 255, 20, 0.15)';
+        // We failed, set a transient to store invalid.
+        set_transient( $test_response_transient, 'invalid', WEEK_IN_SECONDS );
     }
 
     ob_start();
     ?>
-    <style>
-        .toplevel_page_ac-settings input[name="ac_settings[api_url]"],
-        .toplevel_page_ac-settings input[name="ac_settings[api_key]"]{
-            background-color: <?php echo esc_attr($cred_check); ?>;
-        }
-    </style>
     <div class="wrap">
         <h2 class="nav-tab-wrapper">
             <img class="branding_icon" src="<?php echo esc_attr($brand_image); ?>" width="64" height="64">
@@ -62,10 +61,9 @@ function ac_options_page() {
                     'tab' => $tab_id
                 ) );
                 $active = $active_tab == $tab_id ? ' nav-tab-active' : '';
-                echo '<a href="' . esc_url( $tab_url ) . '" title="' . esc_attr( $tab_name ) . '" class="nav-tab' . $active . '">';
+                echo '<a href="' . esc_url( remove_query_arg( array( 'ac_action', '_wpnonce' ), $tab_url ) ) . '" title="' . esc_attr( $tab_name ) . '" class="nav-tab' . $active . '">';
                 echo esc_html( $tab_name );
                 echo '</a>';
-                do_action( 'ac_admin_page' );
             }
             ?>
         </h2>
